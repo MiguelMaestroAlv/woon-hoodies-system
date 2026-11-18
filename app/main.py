@@ -40,3 +40,51 @@ def registrar_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(get_
 def obtener_catalogo(db: Session = Depends(get_db)):
     catalogo = db.query(models.Hoodie).all()
     return catalogo
+
+@app.post("/pedidos/", response_model=schemas.PedidoResponse)
+def crear_pedido(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
+    # Buscar al cliente y al producto
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == pedido.cliente_id).first()
+    hoodie = db.query(models.Hoodie).filter(models.Hoodie.id == pedido.hoodie_id).first()
+
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    if not hoodie:
+        raise HTTPException(status_code=404, detail="Hoodie no encontrada")
+    if hoodie.stock < pedido.cantidad:
+        raise HTTPException(status_code=400, detail="Stock insuficiente")
+
+    # Cálculos base
+    subtotal = hoodie.precio * pedido.cantidad
+    
+    # Lógica de descuentos basada en el BPMN
+    porcentaje_base = 0.10 if subtotal > 1000 else 0.05
+    
+    bono_tipo = 0.0
+    if cliente.tipo_cliente == "1":
+        bono_tipo = 0.05
+    elif cliente.tipo_cliente == "2":
+        bono_tipo = 0.02
+
+    porcentaje_total = porcentaje_base + bono_tipo
+    descuento_dinero = subtotal * porcentaje_total
+    total_final = subtotal - descuento_dinero
+
+    # Guardar en base de datos
+    nuevo_pedido = models.Pedido(
+        cliente_id=pedido.cliente_id,
+        hoodie_id=pedido.hoodie_id,
+        cantidad=pedido.cantidad,
+        subtotal=subtotal,
+        descuento_aplicado=descuento_dinero,
+        total=total_final
+    )
+    
+    # Restar stock
+    hoodie.stock -= pedido.cantidad
+    
+    db.add(nuevo_pedido)
+    db.commit()
+    db.refresh(nuevo_pedido)
+
+    return nuevo_pedido
