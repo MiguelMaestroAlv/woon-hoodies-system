@@ -26,3 +26,20 @@ class HoodieBase(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PedidoCreate(BaseModel):
+    cliente_id: int
+    hoodie_id: int
+    cantidad: int
+
+class PedidoResponse(BaseModel):
+    id: int
+    cliente_id: int
+    hoodie_id: int
+    cantidad: int
+    subtotal: float
+    descuento_aplicado: float
+    total: float
+
+    class Config:
+        from_attributes = True
