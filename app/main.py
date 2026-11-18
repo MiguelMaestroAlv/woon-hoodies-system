@@ -35,3 +35,8 @@ def registrar_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(get_
     db.refresh(nuevo_cliente)
     
     return {"mensaje": "Cliente registrado exitosamente", "cliente": nuevo_cliente.nombre}
+
+@app.get("/hoodies/", response_model=list[schemas.HoodieBase])
+def obtener_catalogo(db: Session = Depends(get_db)):
+    catalogo = db.query(models.Hoodie).all()
+    return catalogo
