@@ -15,6 +15,8 @@ class ClienteCreate(BaseModel):
             raise ValueError('La contraseña debe contener al menos una letra mayúscula')
         if not re.search(r'[0-9]', v):
             raise ValueError('La contraseña debe contener al menos un número')
+        if ' ' in v:
+            raise ValueError('La contraseña no debe contener espacios')
         return v
 
 class HoodieBase(BaseModel):
