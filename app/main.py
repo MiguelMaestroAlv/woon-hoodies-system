@@ -3,11 +3,21 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import engine, SessionLocal
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 # Esto crea las tablas en SQLite físicamente
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="WOON Hoodies API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Dependencia para conectarnos a la base de datos en cada petición
 def get_db():
@@ -88,3 +98,5 @@ def crear_pedido(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
     db.refresh(nuevo_pedido)
 
     return nuevo_pedido
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
