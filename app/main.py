@@ -77,8 +77,8 @@ def crear_pedido(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
         bono_tipo = 0.02
 
     porcentaje_total = porcentaje_base + bono_tipo
-    descuento_dinero = subtotal * porcentaje_total
-    total_final = subtotal - descuento_dinero
+    descuento_dinero = round(subtotal * porcentaje_total, 2)
+    total_final = round(subtotal - descuento_dinero, 2)
 
     # Guardar en base de datos
     nuevo_pedido = models.Pedido(
